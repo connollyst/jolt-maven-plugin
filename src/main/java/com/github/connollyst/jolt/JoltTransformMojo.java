@@ -37,7 +37,7 @@ public class JoltTransformMojo extends AbstractMojo {
         Path specFile = asInputFile(spec);
         Path sourceFile = asInputFile(source);
         Path resultFile = asOutputFile(result);
-        new JoltTransformer(getLog(), mapper, getWriter(), specFile, sourceFile, resultFile).execute();
+        new JoltTransformer(getLog(), mapper, getWriter(), specFile, resultFile).execute(sourceFile);
     }
 
     private ObjectWriter getWriter() {

@@ -37,9 +37,9 @@ public class JoltTransformerTest {
         Path input = getTestResource("/input/source/a.json");
         Path spec = getTestResource("/input/spec/a.json");
         Path output = Files.createTempFile("jolt-maven-plugin-junit-", ".json");
-        JoltTransformer transformer = new JoltTransformer(log, reader, writer, spec, input, output);
+        JoltTransformer transformer = new JoltTransformer(log, reader, writer, spec, output);
         // When
-        Path actual = transformer.execute();
+        Path actual = transformer.execute(input);
         // Then
         assertThat(actual).isEqualTo(actual);
         assertThat(Files.exists(actual)).isTrue();

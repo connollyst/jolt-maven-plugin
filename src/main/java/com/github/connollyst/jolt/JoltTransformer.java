@@ -18,28 +18,19 @@ class JoltTransformer {
     private final Log log;
     private final ObjectMapper reader;
     private final ObjectWriter writer;
-    private final Path specFile;
-    private final Path inputFile;
+    private final Chainr spec;
     private final Path outputFile;
 
-    JoltTransformer(Log log, ObjectMapper reader, ObjectWriter writer, Path specFile, Path inputFile, Path outputFile) {
+    JoltTransformer(Log log, ObjectMapper reader, ObjectWriter writer, Path specFile, Path outputFile)
+            throws MojoExecutionException {
         this.log = log;
         this.reader = reader;
         this.writer = writer;
-        this.specFile = specFile;
-        this.inputFile = inputFile;
+        this.spec = readSpec(specFile);
         this.outputFile = outputFile;
     }
 
-    Path execute() throws MojoExecutionException {
-        log.info("Transforming " + inputFile + " using " + specFile + ", writing to " + outputFile);
-        Chainr spec = readSpec();
-        Object input = readInput();
-        Object output = spec.transform(input);
-        return writeOutput(output);
-    }
-
-    private Chainr readSpec() throws MojoExecutionException {
+    private Chainr readSpec(Path specFile) throws MojoExecutionException {
         try {
             return Chainr.fromSpec(readFile(specFile));
         } catch (Exception e) {
@@ -47,7 +38,14 @@ class JoltTransformer {
         }
     }
 
-    private Object readInput() throws MojoExecutionException {
+    Path execute(Path inputFile) throws MojoExecutionException {
+        log.info("Transforming " + inputFile + " & writing to " + outputFile);
+        Object input = readInput(inputFile);
+        Object output = spec.transform(input);
+        return writeOutput(output);
+    }
+
+    private Object readInput(Path inputFile) throws MojoExecutionException {
         try {
             return reader.readValue(inputFile.toFile(), Object.class);
         } catch (IOException ioe) {
