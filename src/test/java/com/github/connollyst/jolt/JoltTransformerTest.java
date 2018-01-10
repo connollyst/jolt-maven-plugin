@@ -29,8 +29,8 @@ public class JoltTransformerTest {
     @Test
     public void should() throws URISyntaxException, IOException {
         // Given
-        Path input = getTestResource("/input/source/a.json");
-        Path spec = getTestResource("/input/spec/a.json");
+        Path input = getTestResource("/json/input/source/a.json");
+        Path spec = getTestResource("/json/input/spec/a.json");
         Path output = Files.createTempFile("jolt-maven-plugin-junit-", ".json");
         JoltTransformer transformer = new JoltTransformer(LOGGER, DO_MINIFY, spec, output);
         // When
