@@ -18,15 +18,13 @@ class JoltTransformer {
     private final ObjectMapper mapper;
     private final boolean minify;
     private final Chainr spec;
-    private final Path outputFile;
 
 
-    JoltTransformer(Log log, boolean minify, Path specFile, Path outputFile) {
+    JoltTransformer(Log log, boolean minify, Path specFile) {
         this.mapper = new ObjectMapper();
         this.minify = minify;
         this.log = log;
         this.spec = readSpec(specFile);
-        this.outputFile = outputFile;
     }
 
     private Chainr readSpec(Path specFile) {
@@ -37,11 +35,11 @@ class JoltTransformer {
         }
     }
 
-    Path execute(Path inputFile) throws JoltMavenException, IOException {
+    void execute(Path inputFile, Path outputFile) throws JoltMavenException, IOException {
         log.info("Transforming " + inputFile + " & writing to " + outputFile);
-        Object input = readInput(inputFile);
-        Object output = spec.transform(input);
-        return writeOutput(output);
+        Object inputJson = readInput(inputFile);
+        Object outputJson = spec.transform(inputJson);
+        writeOutput(outputFile, outputJson);
     }
 
     private Object readInput(Path inputFile) throws IOException {
@@ -53,8 +51,8 @@ class JoltTransformer {
         }
     }
 
-    private Path writeOutput(Object output) throws IOException {
-        log.debug("Writing transformed JSON: " + output);
+    private void writeOutput(Path outputFile, Object outputJson) throws IOException {
+        log.debug("Writing transformed JSON: " + outputJson);
         try {
             Files.createDirectories(outputFile.getParent());
         } catch (IOException ioe) {
@@ -62,11 +60,10 @@ class JoltTransformer {
         }
         try {
             ObjectWriter writer = minify ? mapper.writerWithDefaultPrettyPrinter() : mapper.writer();
-            writer.writeValue(outputFile.toFile(), output);
+            writer.writeValue(outputFile.toFile(), outputJson);
         } catch (IOException ioe) {
             throw new IOException("Failed to write " + outputFile + ":" + ioe.getMessage(), ioe);
         }
-        return outputFile;
     }
 
 }

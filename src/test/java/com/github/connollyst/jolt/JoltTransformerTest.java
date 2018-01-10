@@ -14,7 +14,7 @@ import java.nio.file.Paths;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for {@link JoltTransformMojo}.
+ * Tests for {@link JoltMojo}.
  *
  * @author Sean Connolly
  */
@@ -32,12 +32,12 @@ public class JoltTransformerTest {
         Path input = getTestResource("/json/input/source/a.json");
         Path spec = getTestResource("/json/input/spec/a.json");
         Path output = Files.createTempFile("jolt-maven-plugin-junit-", ".json");
-        JoltTransformer transformer = new JoltTransformer(LOGGER, DO_MINIFY, spec, output);
+        JoltTransformer transformer = new JoltTransformer(LOGGER, DO_MINIFY, spec);
         // When
-        Path actual = transformer.execute(input);
+        transformer.execute(input, output);
         // Then
-        assertThat(actual).isEqualTo(actual);
-        assertThat(Files.exists(actual)).isTrue();
+        assertThat(output).isEqualTo(output);
+        assertThat(Files.exists(output)).isTrue();
     }
 
     /* UTILITIES */
