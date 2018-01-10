@@ -1,12 +1,8 @@
 package com.github.connollyst.jolt;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
@@ -25,19 +21,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(MockitoJUnitRunner.class)
 public class JoltTransformerTest {
 
-    @Mock
-    private Log log;
-    private ObjectMapper mapper = new ObjectMapper();
-    private ObjectMapper reader = mapper;
-    private ObjectWriter writer = mapper.writer();
+    private static final Log LOGGER = SLF4JMavenLogger.get(JoltTransformerTest.class);
+
+    private static final boolean DO_MINIFY = true;
+    private static final boolean DONT_MINIFY = false;
 
     @Test
-    public void should() throws URISyntaxException, IOException, MojoExecutionException {
+    public void should() throws URISyntaxException, IOException {
         // Given
         Path input = getTestResource("/input/source/a.json");
         Path spec = getTestResource("/input/spec/a.json");
         Path output = Files.createTempFile("jolt-maven-plugin-junit-", ".json");
-        JoltTransformer transformer = new JoltTransformer(log, reader, writer, spec, output);
+        JoltTransformer transformer = new JoltTransformer(LOGGER, DO_MINIFY, spec, output);
         // When
         Path actual = transformer.execute(input);
         // Then

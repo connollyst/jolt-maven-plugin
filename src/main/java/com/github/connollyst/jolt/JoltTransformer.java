@@ -3,7 +3,6 @@ package com.github.connollyst.jolt;
 import com.bazaarvoice.jolt.Chainr;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 
 import java.io.IOException;
@@ -16,63 +15,56 @@ import java.nio.file.Path;
 class JoltTransformer {
 
     private final Log log;
-    private final ObjectMapper reader;
-    private final ObjectWriter writer;
+    private final ObjectMapper mapper;
+    private final boolean minify;
     private final Chainr spec;
     private final Path outputFile;
 
-    JoltTransformer(Log log, ObjectMapper reader, ObjectWriter writer, Path specFile, Path outputFile)
-            throws MojoExecutionException {
+
+    JoltTransformer(Log log, boolean minify, Path specFile, Path outputFile) {
+        this.mapper = new ObjectMapper();
+        this.minify = minify;
         this.log = log;
-        this.reader = reader;
-        this.writer = writer;
         this.spec = readSpec(specFile);
         this.outputFile = outputFile;
     }
 
-    private Chainr readSpec(Path specFile) throws MojoExecutionException {
+    private Chainr readSpec(Path specFile) {
         try {
-            return Chainr.fromSpec(readFile(specFile));
+            return Chainr.fromSpec(readInput(specFile));
         } catch (Exception e) {
-            throw new MojoExecutionException("Failed to read " + specFile + ": " + e.getMessage(), e);
+            throw new JoltMavenException("Failed to read " + specFile + ": " + e.getMessage(), e);
         }
     }
 
-    Path execute(Path inputFile) throws MojoExecutionException {
+    Path execute(Path inputFile) throws JoltMavenException, IOException {
         log.info("Transforming " + inputFile + " & writing to " + outputFile);
         Object input = readInput(inputFile);
         Object output = spec.transform(input);
         return writeOutput(output);
     }
 
-    private Object readInput(Path inputFile) throws MojoExecutionException {
+    private Object readInput(Path inputFile) throws IOException {
+        log.info("Reading Jolt spec " + inputFile.toFile());
         try {
-            return reader.readValue(inputFile.toFile(), Object.class);
+            return mapper.readValue(inputFile.toFile(), Object.class);
         } catch (IOException ioe) {
-            throw new MojoExecutionException("Failed to read " + inputFile + ": " + ioe.getMessage(), ioe);
+            throw new IOException("Failed to read " + inputFile + ": " + ioe.getMessage(), ioe);
         }
     }
 
-    private Object readFile(Path file) throws MojoExecutionException {
-        try {
-            return reader.readValue(file.toFile(), Object.class);
-        } catch (IOException ioe) {
-            throw new MojoExecutionException("Failed to read " + file + ": " + ioe.getMessage(), ioe);
-        }
-    }
-
-    private Path writeOutput(Object output) throws MojoExecutionException {
+    private Path writeOutput(Object output) throws IOException {
         log.debug("Writing transformed JSON: " + output);
         try {
             Files.createDirectories(outputFile.getParent());
         } catch (IOException ioe) {
-            throw new MojoExecutionException("Failed to create directories for " + outputFile.getParent() + ":"
-                    + ioe.getMessage(), ioe);
+            throw new IOException("Failed to create path to " + outputFile.getParent() + ":" + ioe.getMessage(), ioe);
         }
         try {
+            ObjectWriter writer = minify ? mapper.writerWithDefaultPrettyPrinter() : mapper.writer();
             writer.writeValue(outputFile.toFile(), output);
         } catch (IOException ioe) {
-            throw new MojoExecutionException("Failed to write " + outputFile + ":" + ioe.getMessage(), ioe);
+            throw new IOException("Failed to write " + outputFile + ":" + ioe.getMessage(), ioe);
         }
         return outputFile;
     }
