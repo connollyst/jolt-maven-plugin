@@ -11,14 +11,14 @@ import java.nio.file.attribute.BasicFileAttributes;
 /**
  * @author Sean Connolly
  */
-class Crawler extends SimpleFileVisitor<Path> {
+class JoltCrawler extends SimpleFileVisitor<Path> {
 
     private final Log log;
     private final Path inputDirectory;
     private final Path outputDirectory;
     private final JoltTransformer transformer;
 
-    Crawler(Log log, Path inputDirectory, Path outputDirectory, JoltTransformer transformer) {
+    JoltCrawler(Log log, Path inputDirectory, Path outputDirectory, JoltTransformer transformer) {
         this.log = log;
         this.inputDirectory = inputDirectory;
         this.outputDirectory = outputDirectory;
@@ -31,6 +31,7 @@ class Crawler extends SimpleFileVisitor<Path> {
         log.info("Processing " + sourceFile);
         Path relativeSourcePath = inputDirectory.relativize(sourceFile);
         Path destinationPath = outputDirectory.resolve(relativeSourcePath);
+        log.info("Output " + destinationPath);
         transformer.execute(sourceFile, destinationPath);
         return super.visitFile(sourceFile, sourceAttributes);
     }

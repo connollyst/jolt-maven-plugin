@@ -39,19 +39,27 @@ public class JoltRunner {
         log.debug("Jolt input directory: " + inputDirectory);
         log.debug("Jolt output directory: " + outputDirectory);
         try {
-            JoltTransformer transformer = new JoltTransformer(log, minify, asPath(specFile));
-            Crawler crawler = new Crawler(log, asPath(inputDirectory), asPath(outputDirectory), transformer);
-            Files.walkFileTree(asPath(inputDirectory), crawler);
+            Path spec = asPath(specFile, false);
+            Path input = asPath(inputDirectory, false);
+            Path output = asPath(outputDirectory, true);
+            JoltTransformer transformer = new JoltTransformer(log, minify, spec);
+            JoltCrawler crawler = new JoltCrawler(log, input, output, transformer);
+            Files.walkFileTree(input, crawler);
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }
     }
 
-    private Path asPath(String filePath) throws MojoExecutionException, IOException {
+    private Path asPath(String filePath, boolean createIfMissing) throws MojoExecutionException, IOException {
         try {
             URL fileUrl = getClass().getResource(filePath);
             if (fileUrl == null) {
-                throw new IOException("File not found: " + filePath);
+                if (createIfMissing) {
+                    Files.createDirectories(Paths.get(filePath));
+                    return asPath(filePath, false);
+                } else {
+                    throw new IOException("File not found: " + filePath);
+                }
             }
             return Paths.get(fileUrl.toURI());
         } catch (URISyntaxException e) {
