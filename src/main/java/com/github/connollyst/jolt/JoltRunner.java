@@ -5,8 +5,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,21 +48,19 @@ public class JoltRunner {
         }
     }
 
-    private Path asPath(String filePath, boolean createIfMissing) throws MojoExecutionException, IOException {
-        try {
-            URL fileUrl = getClass().getResource(filePath);
-            if (fileUrl == null) {
-                if (createIfMissing) {
-                    Files.createDirectories(Paths.get(filePath));
-                    return asPath(filePath, false);
-                } else {
-                    throw new IOException("File not found: " + filePath);
-                }
+    private Path asPath(String filePath, boolean createIfMissing) throws IOException {
+        Path path = Paths.get(filePath);
+        if (!Files.exists(path)) {
+            if (createIfMissing) {
+                log.info("Creating " + filePath);
+                Files.createDirectories(Paths.get(filePath));
+                Files.createDirectory(Paths.get(filePath));
+                return asPath(filePath, false);
+            } else {
+                throw new IOException("File not found: " + filePath);
             }
-            return Paths.get(fileUrl.toURI());
-        } catch (URISyntaxException e) {
-            throw new MojoExecutionException("???", e);
         }
+        return path;
     }
 
 }
