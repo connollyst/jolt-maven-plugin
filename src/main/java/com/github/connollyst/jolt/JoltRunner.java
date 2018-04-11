@@ -54,7 +54,6 @@ public class JoltRunner {
             if (createIfMissing) {
                 log.info("Creating " + filePath);
                 Files.createDirectories(Paths.get(filePath));
-                Files.createDirectory(Paths.get(filePath));
                 return asPath(filePath, false);
             } else {
                 throw new IOException("File not found: " + filePath);
