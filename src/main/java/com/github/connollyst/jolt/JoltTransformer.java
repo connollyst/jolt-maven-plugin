@@ -69,7 +69,7 @@ class JoltTransformer {
     }
 
     private String stringFromObject(Object outputJson) {
-        return minify ? toPrettyJsonString(outputJson) : toJsonString(outputJson);
+        return minify ? toJsonString(outputJson) : toPrettyJsonString(outputJson);
     }
 
 }
