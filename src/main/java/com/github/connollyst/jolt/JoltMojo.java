@@ -3,7 +3,6 @@ package com.github.connollyst.jolt;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -12,8 +11,6 @@ import org.apache.maven.plugins.annotations.Parameter;
  */
 @Mojo(name = "transform")
 public class JoltMojo extends AbstractMojo {
-
-    private final Log log = getLog();
 
     @Parameter(property = "jolt.transform.specFile", defaultValue = "${project.basedir}/src/main/resources/jolt.json/")
     private String specFile;
@@ -25,7 +22,7 @@ public class JoltMojo extends AbstractMojo {
     private boolean minify;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
-        JoltRunner jolt = new JoltRunner(log, specFile, inputDirectory, outputDirectory, minify);
+        JoltRunner jolt = new JoltRunner(getLog(), specFile, inputDirectory, outputDirectory, minify);
         jolt.verify();
         jolt.execute();
     }
