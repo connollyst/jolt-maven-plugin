@@ -1,5 +1,6 @@
 [
   {
+    // valid comment
     "operation": "shift",
     "spec": {
       "rating": {
