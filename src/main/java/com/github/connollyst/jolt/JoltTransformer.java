@@ -1,13 +1,18 @@
 package com.github.connollyst.jolt;
 
-import com.bazaarvoice.jolt.Chainr;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import org.apache.maven.plugin.logging.Log;
+import static com.bazaarvoice.jolt.JsonUtils.jsonToObject;
+import static com.bazaarvoice.jolt.JsonUtils.toJsonString;
+import static com.bazaarvoice.jolt.JsonUtils.toPrettyJsonString;
+import static java.nio.file.Files.newInputStream;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import org.apache.maven.plugin.logging.Log;
+
+import com.bazaarvoice.jolt.Chainr;
 
 /**
  * @author Sean Connolly
@@ -15,13 +20,11 @@ import java.nio.file.Path;
 class JoltTransformer {
 
     private final Log log;
-    private final ObjectMapper mapper;
     private final boolean minify;
     private final Chainr spec;
 
 
     JoltTransformer(Log log, boolean minify, Path specFile) {
-        this.mapper = new ObjectMapper();
         this.minify = minify;
         this.log = log;
         this.spec = readSpec(specFile);
@@ -45,7 +48,7 @@ class JoltTransformer {
     private Object readInput(Path inputFile) throws IOException {
         log.info("Reading Jolt spec " + inputFile.toFile());
         try {
-            return mapper.readValue(inputFile.toFile(), Object.class);
+            return jsonToObject(newInputStream(inputFile));
         } catch (IOException ioe) {
             throw new IOException("Failed to read " + inputFile + ": " + ioe.getMessage(), ioe);
         }
@@ -59,11 +62,14 @@ class JoltTransformer {
             throw new IOException("Failed to create path to " + outputFile.getParent() + ":" + ioe.getMessage(), ioe);
         }
         try {
-            ObjectWriter writer = minify ? mapper.writerWithDefaultPrettyPrinter() : mapper.writer();
-            writer.writeValue(outputFile.toFile(), outputJson);
+            Files.write(outputFile, stringFromObject(outputJson).getBytes(StandardCharsets.UTF_8));
         } catch (IOException ioe) {
             throw new IOException("Failed to write " + outputFile + ":" + ioe.getMessage(), ioe);
         }
+    }
+
+    private String stringFromObject(Object outputJson) {
+        return minify ? toJsonString(outputJson) : toPrettyJsonString(outputJson);
     }
 
 }
